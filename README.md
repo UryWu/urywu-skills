@@ -52,6 +52,39 @@ npx skillslm install UryWu/urywu-skills --skill fastapi-vue-version-bump --agent
 
 ---
 
+## 卸载
+
+> ⚠️ **skillslm v2.0.0 没有 `uninstall` 子命令**（已对照源码确认：只有 `install` / `list` / `update`）。卸载就是直接删目录——skillslm 不维护安装注册表，删除即彻底卸载。
+
+### 卸载单个 skill
+
+skill 默认安装到 `./.claude/skills/<skill-name>/`，直接 `rm -rf` 即可：
+
+```bash
+# Claude Code agent（最常见）
+rm -rf .claude/skills/fastapi-vue-version-bump
+rm -rf .claude/skills/playwright-cli
+```
+
+如果你之前用了 `--global` 装到全局目录，则删对应路径：
+
+```bash
+rm -rf ~/.claude/skills/fastapi-vue-version-bump
+```
+
+### 重置后重装（"伪更新"）
+
+因为 `skillslm install` 在目标已存在时会**覆盖**（`fs.rmSync` 后再 `copySkillDirectory`），所以可以靠"先删再装"做一次干净重装：
+
+```bash
+rm -rf .claude/skills/fastapi-vue-version-bump
+npx skillslm install UryWu/urywu-skills --skill fastapi-vue-version-bump --agent claude-code --yes
+```
+
+> 这比 `skillslm update <full-url>` 更稳：update 走的是浅层文件同步，可能漏掉你新加的 `references/` 或 `scripts/` 子文件；"删+装"是全量复制。
+
+---
+
 ## 布局约定
 
 仓库根下 `skills/` 子目录对齐 [`anthropics/skills`](https://github.com/anthropics/skills) 布局：
