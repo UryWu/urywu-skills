@@ -171,7 +171,50 @@ urywu-skills/
 npx skillslm install anthropics/skills
 ```
 
-[`anthropics/skills`](https://github.com/anthropics/skills) 是 Anthropic 官方维护的 skill 集合（skillslm 默认源），布局与本仓库完全一致（`skills/<name>/SKILL.md`），可直接通过 `owner/repo` shorthand 一键安装全部。可与本仓库的 skill 共存于 `.claude/skills/`，互不覆盖。
+[`anthropics/skills`](https://github.com/anthropics/skills) 是 Anthropic 官方维护的 skill 集合（skillslm 默认源），布局与本仓库完全一致（`skills/<name>/SKILL.md`），可直接通过 `owner/repo` shorthand 一键安装全部。可与本仓库的 skill 共存在 `.claude/skills/`，互不覆盖。
+
+### 安装单个 skill（`--skill`）
+
+不加 `--skill` 会装全仓库（17 个 skill，按需很多）。用 `--skill <name>` 只装要的：
+
+```bash
+npx skillslm install anthropics/skills --skill pdf --agent claude-code --yes
+npx skillslm install anthropics/skills --skill xlsx --agent claude-code --yes
+```
+
+`--skill` 是 variadic，可一次装多个：
+
+```bash
+npx skillslm install anthropics/skills --skill pdf docx pptx xlsx --agent claude-code --yes
+```
+
+**当前 anthropics/skills 收录的 17 个 skill**：
+
+| Skill | 用途 |
+|---|---|
+| `algorithmic-art` | 算法艺术（p5.js） |
+| `brand-guidelines` | 品牌指南 |
+| `canvas-design` | 画布设计 |
+| `claude-api` | Claude API / Anthropic SDK 用法 |
+| `doc-coauthoring` | 文档协作 |
+| `docx` | Word 文档创建/编辑 |
+| `frontend-design` | 前端设计 |
+| `internal-comms` | 内部沟通 |
+| `mcp-builder` | MCP server 构建 |
+| `pdf` | PDF 文档创建/编辑 |
+| `pptx` | PowerPoint 创建/编辑 |
+| `skill-creator` | skill 创建模板 |
+| `slack-gif-creator` | Slack GIF 创作 |
+| `theme-factory` | 主题工厂 |
+| `web-artifacts-builder` | Web artifacts 构建 |
+| `webapp-testing` | Web 应用测试 |
+| `xlsx` | Excel 表格创建/编辑 |
+
+预查看某个 skill 是什么（在 `skills/<name>/SKILL.md` 里），可加 `--list` 列出仓库内全部 skill（不实际安装）：
+
+```bash
+npx skillslm install anthropics/skills --list
+```
 
 ---
 
