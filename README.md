@@ -32,18 +32,58 @@ npx skillslm install UryWu/urywu-skills --skill playwright-cli --agent claude-co
 
 skill 默认安装到 `./.claude/skills/<skill-name>/`，与本机现有布局一致。
 
+### 安装位置：全局 vs 项目级
+
+`--global` / `-g` 控制安装作用域（v2.0.0 源码 `getInstallPath`）：
+
+| 模式 | 路径（Claude Code agent） | 适用场景 |
+|---|---|---|
+| **项目级**（默认，无 `--global`） | `./.claude/skills/<skill-name>/`（跟随 `cwd`） | skill 只跟当前项目走；不同项目可有不同版本 |
+| **全局**（加 `--global`） | `~/.claude/skills/<skill-name>/` | 所有项目共享同一份 skill；个人工具链类首选 |
+
+```bash
+# 项目级（默认）— 只对当前项目生效
+npx skillslm install UryWu/urywu-skills --skill playwright-cli --agent claude-code --yes
+
+# 全局 — 所有项目生效
+npx skillslm install UryWu/urywu-skills --skill playwright-cli --agent claude-code --global --yes
+```
+
+**何时选哪个**：
+- `playwright-cli`（通用浏览器工具）→ 全局（任何项目都可能用到）
+- `fastapi-vue-version-bump`（2-component 项目模板）→ 视情况：如果是个人发版习惯统一 → 全局；如果是多套布局并存 → 项目级
+
+**不同 agent 的全局路径不同**（`agents.js` 表）：
+
+| Agent | 全局路径 |
+|---|---|
+| `claude-code` | `~/.claude/skills` |
+| `cursor` | `~/.cursor/skills` |
+| `codex` | `~/.codex/skills` |
+| `opencode` | `~/.config/opencode/skill` |
+| `amp` | `~/.config/agents/skills` |
+| `kilo` | `~/.kilocode/skills` |
+| `roo` | `~/.roo/skills` |
+| `goose` | `~/.config/goose/skills` |
+| `antigravity` | `~/.gemini/antigravity/skills` |
+
+`--agent` 是 variadic，可同时多 agent 安装：`--agent claude-code cursor`。
+
 ---
 
 ## 更新
 
-> **注意**：`skillslm install` 在已存在时**会跳过**；`skillslm update` 才覆盖更新，且 update **不会记录来源**——必须传完整的 GitHub URL。
+> **注意**：`skillslm install` 在目标已存在时会**覆盖**（源码 `fs.rmSync` 后 `copySkillDirectory`，带 warning 日志"将覆盖"）；`skillslm update` 也覆盖，但 update **不会记录来源**——必须传完整的 GitHub URL。
 
 ```bash
 npx skillslm update https://github.com/UryWu/urywu-skills/tree/main/skills/fastapi-vue-version-bump
 npx skillslm update https://github.com/UryWu/urywu-skills/tree/main/skills/playwright-cli
+
+# 全局安装的 skill 更新时要带 --global
+npx skillslm update https://github.com/UryWu/urywu-skills/tree/main/skills/playwright-cli --global
 ```
 
-或者直接重新安装（如果目标目录已存在则跳过，需要先删除旧副本）：
+或者直接重新安装（install 也会覆盖，所以"删+装"和"update"效果相近，但 install 是全量复制）：
 
 ```bash
 rm -rf .claude/skills/fastapi-vue-version-bump
