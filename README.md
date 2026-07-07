@@ -163,6 +163,18 @@ urywu-skills/
 
 ---
 
+## 更多公开 skill 仓库
+
+如果你想要公开的 Skill 仓库，用 skillslm 搜索安装开源 Skill：
+
+```bash
+npx skillslm install anthropics/skills
+```
+
+[`anthropics/skills`](https://github.com/anthropics/skills) 是 Anthropic 官方维护的 skill 集合（skillslm 默认源），布局与本仓库完全一致（`skills/<name>/SKILL.md`），可直接通过 `owner/repo` shorthand 一键安装全部。可与本仓库的 skill 共存于 `.claude/skills/`，互不覆盖。
+
+---
+
 ## 协议
 
 公开仓库，遵循 skillslm 公开协议。skill 一旦发布即可被任意项目 `install`。
