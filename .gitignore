@@ -11,3 +11,7 @@ desktop.ini
 
 # Claude Code runtime cache
 .claude/settings.local.json
+.claude
+
+# Local plans / execution logs (个人草稿，不发布)
+plans/
