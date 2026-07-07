@@ -1,0 +1,95 @@
+# UryWu Skills
+
+UryWu 个人 Claude Code skill 集中托管点。
+
+通过 [`skillslm`](https://www.npmjs.com/package/skillslm) 一键安装到任意项目的 `.claude/skills/<skill-name>/` 目录，免去手动复制。
+
+---
+
+## 当前托管的 skill
+
+| Skill | 说明 | 适用场景 |
+|---|---|---|
+| [`fastapi-vue-version-bump`](skills/fastapi-vue-version-bump/SKILL.md) | 双组件版本号统一升降（后端 + 前端），自动重生成 lockfile、维护 CHANGELOG | FastAPI+Vue、Python+Node 等双组件项目发版 |
+| [`playwright-cli`](skills/playwright-cli/SKILL.md) | 浏览器自动化、网页测试、Playwright 调试 | Web 端到端调试、UI 自动化 |
+
+---
+
+## 安装
+
+### 安装全部 skill
+
+```bash
+npx skillslm install UryWu/urywu-skills --agent claude-code --yes
+```
+
+### 安装单个 skill
+
+```bash
+npx skillslm install UryWu/urywu-skills --skill fastapi-vue-version-bump --agent claude-code --yes
+npx skillslm install UryWu/urywu-skills --skill playwright-cli --agent claude-code --yes
+```
+
+skill 默认安装到 `./.claude/skills/<skill-name>/`，与本机现有布局一致。
+
+---
+
+## 更新
+
+> **注意**：`skillslm install` 在已存在时**会跳过**；`skillslm update` 才覆盖更新，且 update **不会记录来源**——必须传完整的 GitHub URL。
+
+```bash
+npx skillslm update https://github.com/UryWu/urywu-skills/tree/main/skills/fastapi-vue-version-bump
+npx skillslm update https://github.com/UryWu/urywu-skills/tree/main/skills/playwright-cli
+```
+
+或者直接重新安装（如果目标目录已存在则跳过，需要先删除旧副本）：
+
+```bash
+rm -rf .claude/skills/fastapi-vue-version-bump
+npx skillslm install UryWu/urywu-skills --skill fastapi-vue-version-bump --agent claude-code --yes
+```
+
+---
+
+## 布局约定
+
+仓库根下 `skills/` 子目录对齐 [`anthropics/skills`](https://github.com/anthropics/skills) 布局：
+
+```
+urywu-skills/
+├── README.md
+├── .gitignore
+└── skills/
+    ├── fastapi-vue-version-bump/
+    │   ├── SKILL.md
+    │   └── scripts/
+    │       ├── bump_version.sh
+    │       └── bump_version.ps1
+    └── playwright-cli/
+        ├── SKILL.md
+        └── references/
+            └── ...
+```
+
+每个 skill 内部 `SKILL.md / scripts/ / references/` 布局原样保留。
+
+---
+
+## 添加新 skill
+
+1. 在 `skills/<skill-name>/` 下新建子目录，包含 `SKILL.md`（必须有 YAML frontmatter：`name`、`description`）
+2. skill 内部可携带 `scripts/`、`references/` 等附属文件
+3. 在本 README 的「当前托管的 skill」表格里加一行
+4. `git add` + `git commit` + `git push`
+
+发布前自检：
+- `SKILL.md` 顶部 frontmatter 合法（name kebab-case、description 一句话概括 + 触发场景）
+- 脚本无硬编码绝对路径（跨项目可移植）
+- 文件不依赖任何父目录上下文（独立单元）
+
+---
+
+## 协议
+
+公开仓库，遵循 skillslm 公开协议。skill 一旦发布即可被任意项目 `install`。
