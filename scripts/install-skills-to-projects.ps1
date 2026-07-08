@@ -29,7 +29,7 @@ $Agent = "claude-code"
 # 本仓库托管的全部 skill（默认安装列表）
 $AllSkills = @(
     "fastapi-vue-version-bump",
-    "playwright-cli"
+    # "playwright-cli"
 )
 
 # 默认装全部；传参则覆盖
