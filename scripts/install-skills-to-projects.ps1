@@ -1,14 +1,14 @@
-# scripts/install-to-projects.ps1 — 把 urywu-skills 的 skill 装到多个项目（PowerShell 版）
+# scripts/install-skills-to-projects.ps1 — 把 urywu-skills 的 skill 装到多个项目（PowerShell 版）
 #
-# Bash 等价版本：scripts/install-to-projects.sh（功能同步，命令行参数完全相同）
+# Bash 等价版本：scripts/install-skills-to-projects.sh（功能同步，命令行参数完全相同）
 #
 # 默认行为：把 fastapi-vue-version-bump 装到 4 个常用项目。
 # 可选参数：要装的 skill 名称（variadic，可多个），不传则装 fastapi-vue-version-bump。
 #
 # Usage:
-#   .\scripts\install-to-projects.ps1                                         # 装 fastapi-vue-version-bump 到 4 个默认项目
-#   .\scripts\install-to-projects.ps1 playwright-cli                          # 装 playwright-cli 到 4 个默认项目
-#   .\scripts\install-to-projects.ps1 fastapi-vue-version-bump playwright-cli # 一次装多个
+#   .\scripts\install-skills-to-projects.ps1                                         # 装 fastapi-vue-version-bump 到 4 个默认项目
+#   .\scripts\install-skills-to-projects.ps1 playwright-cli                          # 装 playwright-cli 到 4 个默认项目
+#   .\scripts\install-skills-to-projects.ps1 fastapi-vue-version-bump playwright-cli # 一次装多个
 #
 # 目标项目（Windows 原生路径）：
 #   G:\Projects\projects_ai\audio2text
