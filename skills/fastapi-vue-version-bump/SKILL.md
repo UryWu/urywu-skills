@@ -80,6 +80,46 @@ Override individual components for hot-fixes:
 ./scripts/bump_version.sh patch --frontend minor   # backend +=patch, frontend +=minor
 ```
 
+### Major bump (v1.x → v2.0.0): API 向下兼容**不是必须的**，恰恰是 v2.0.0 的正当理由
+
+按 [SemVer](https://semver.org/) 规范，从 v1.2.1 → v2.0.0 这步跳跃**明确允许并宣告了不兼容的 API 修改**——"不需要做向下兼容"恰恰是 v2.0.0 存在的意义，不是需要担忧的问题。
+
+#### SemVer 三档规则速查
+
+| 变更性质 | bump 类型 | 示例 |
+|---|---|---|
+| 不向下兼容（重命名函数 / 修改参数签名 / 删除旧接口） | **主版本号** | 1.2.1 → **2.0.0** |
+| 新增向下兼容的功能 | **次版本号** | 1.1.1 → 1.**2**.0 |
+| 向下兼容的 bug 修复 | **修订号** | 1.1.**1** → 1.1.**2** |
+
+v1.2.1 → v2.0.0 在语义上等价于：
+- **当前状态 (v1.2.1)**：稳定的 v1 版本，API 已冻结
+- **未来版本 (v2.0.0)**：包含破坏性变更，不再与 v1 完全兼容
+
+> 主版本号的存在本身就是为了让使用者**仅凭版本号**就知道升级的风险等级——v2.0.0 不是"做错了要补救"，而是"明确告知：这次会 break"。
+
+#### 升级到 v2.0.0 的最佳实践
+
+虽然规则上 v2.0.0 不需要兼容 v1.x，但要让使用者能平稳迁移：
+
+1. **提前弃用（Deprecation cycle）**
+   - 在 v1.x 生命周期里通过一个**次版本**（如 v1.3.0）把计划移除/修改的 API 标记为 `@Deprecated`，告知新接口路径
+   - 不要在 v2.0.0 静默删 API——给使用者一个缓冲期
+2. **同步 CHANGELOG**（本 skill 上方「Update CHANGELOG.md」章节强制要求）
+   - 破坏性变更放进 Keep-a-Changelog 的 `### Changed` / `### Removed` 分类
+   - 主版本升级要**单独一节** `## [2.0.0] - YYYY-MM-DD`，把所有破坏点列清楚
+3. **写迁移指南（Migration Guide）**
+   - 在 `## [2.0.0]` 段落或独立 `docs/MIGRATION-v2.md` 里给"v1 → v2"的具体步骤
+   - 重点写：哪些 import 路径变了、哪些参数签名变了、哪些功能被整体替换
+4. **版本号重置**
+   - 主版本号从 v1.2.1 → v2.0.0 时，**次版本号和修订号必须重置为 0**
+   - 本 skill 的 `bump_version.{sh,ps1}` 在处理 `major` 时已经做这件事（`MAJOR+1`，MINOR/PATCH=0）—— 见脚本中 `bump_version` 函数的 `major) echo "$((MAJOR + 1)).0.0"` 分支
+5. **本 skill 自身升级 v2.0.0**
+   - 跑 `./scripts/bump_version.sh 2.0.0`（或 `major`）一次到位
+   - 别忘了手动把"破坏性变更清单"作为 `### Changed` / `### Removed` 条目写进 CHANGELOG，再 commit + tag + push
+
+> 💡 **结论**：可以放心发布 v2.0.0。"不需要向下兼容"是 v2.0.0 的正当理由，不是需要担忧的事。只需要通过弃用周期 + CHANGELOG + 迁移指南让使用者能平滑过渡。
+
 ## Run the bump
 
 From repo root:
