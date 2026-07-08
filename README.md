@@ -69,6 +69,22 @@ npx skillslm install UryWu/urywu-skills --skill playwright-cli --agent claude-co
 
 `--agent` 是 variadic，可同时多 agent 安装：`--agent claude-code cursor`。
 
+### 批量安装到多个项目
+
+如果你要在多个项目里一次装好（避免手动一个个跑），仓库自带 `scripts/install-skills-to-projects.{sh,ps1}`：
+
+```bash
+# Git Bash / WSL
+./scripts/install-skills-to-projects.sh                                # 装 ALL_SKILLS 列表里的全部
+./scripts/install-skills-to-projects.sh playwright-cli                 # 只装一个
+./scripts/install-skills-to-projects.sh a b c                         # 一次装多个
+
+# PowerShell（参数完全相同）
+.\scripts\install-skills-to-projects.ps1
+```
+
+默认目标项目写死在脚本顶部（`PROJECTS` 数组），按需修改。脚本自带幂等（可重复运行）+ `npx -y`（无人值守）。`ALL_SKILLS` 数组是默认安装列表，新加 skill 后在那里同步登记即可。
+
 ---
 
 ## 更新
@@ -125,6 +141,35 @@ npx skillslm install UryWu/urywu-skills --skill fastapi-vue-version-bump --agent
 
 ---
 
+## 项目级 → 全局迁移
+
+想把某个 skill 从项目级（`./.claude/skills/`）切到全局（`~/.claude/skills/`，所有项目共享）？用仓库自带的 `scripts/switch-to-global-install.{sh,ps1}`：
+
+```bash
+# Git Bash / WSL
+./scripts/switch-to-global-install.sh                              # 切 fastapi-vue-version-bump
+./scripts/switch-to-global-install.sh playwright-cli               # 切 playwright-cli
+./scripts/switch-to-global-install.sh a b c                       # 一次切多个
+
+# PowerShell（参数完全相同）
+.\scripts\switch-to-global-install.ps1
+```
+
+脚本做两件事：
+
+1. **Step 1** — 从默认 4 个项目里 `rm -rf .claude/skills/<skill>`
+2. **Step 2** — `npx skillslm install ... --global --yes` 装到 `~/.claude/skills/`
+
+⚠️ **破坏性操作**：会删除项目里的副本。运行前确认或先备份。回退：再跑 `./scripts/install-skills-to-projects.sh` 装回项目级。
+
+何时切换：
+- 通用工具（如 `playwright-cli`）→ 全局更省心（一次装到处可用）
+- 项目特定配置 → 保留项目级（避免影响其他项目）
+
+详细对比见上方「安装位置：全局 vs 项目级」。
+
+---
+
 ## 布局约定
 
 仓库根下 `skills/` 子目录对齐 [`anthropics/skills`](https://github.com/anthropics/skills) 布局：
@@ -133,6 +178,13 @@ npx skillslm install UryWu/urywu-skills --skill fastapi-vue-version-bump --agent
 urywu-skills/
 ├── README.md
 ├── .gitignore
+├── docs/
+│   └── claude-code-skill-installation.md
+├── scripts/
+│   ├── install-skills-to-projects.sh
+│   ├── install-skills-to-projects.ps1
+│   ├── switch-to-global-install.sh
+│   └── switch-to-global-install.ps1
 └── skills/
     ├── fastapi-vue-version-bump/
     │   ├── SKILL.md
@@ -144,6 +196,10 @@ urywu-skills/
         └── references/
             └── ...
 ```
+
+- `skills/<name>/` — 对齐 anthropics/skills 布局，每个 skill 自包含 `SKILL.md` + 附属文件
+- `scripts/` — 仓库自身的运维脚本（批量安装、全局迁移等），**不是** skill 本身的一部分
+- `docs/` — 补充文档（如 Claude Code Skill 安装全解）
 
 每个 skill 内部 `SKILL.md / scripts/ / references/` 布局原样保留。
 
@@ -215,6 +271,14 @@ npx skillslm install anthropics/skills --skill pdf docx pptx xlsx --agent claude
 ```bash
 npx skillslm install anthropics/skills --list
 ```
+
+---
+
+## 文档
+
+补充文档（非 skill 本体）：
+
+- [`docs/claude-code-skill-installation.md`](docs/claude-code-skill-installation.md) — Claude Code Skill 安装方式全解（手动 vs 工具、skillslm vs skillhubs vs skills、各 agent 全局路径、skillhubs 私有源机制详解、决策表）
 
 ---
 
