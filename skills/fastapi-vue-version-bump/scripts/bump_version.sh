@@ -107,11 +107,11 @@ sync_lock_backend()   { (cd backend   && uv lock            >/dev/null 2>&1); }
 sync_lock_frontend()  { (cd frontend  && npm install --silent --no-audit --no-fund >/dev/null 2>&1); }
 
 declare -A COMPONENT_FILES=(
-  [backend]="backend/pyproject.toml|plain
+  [backend]="backend/pyproject.toml|toml
 backend/VERSION|plain
-backend/app/main.py|plain
-backend/app/schemas/types.py|plain
-backend/app/api/endpoints/health.py|plain"
+backend/app/main.py|python
+backend/app/schemas/types.py|python
+backend/app/api/endpoints/health.py|python"
   [frontend]="frontend/package.json|json"
 )
 declare -A COMPONENT_READ=(
@@ -218,9 +218,22 @@ patch_file() {
   # (e.g. size = 181814 → size = 1.1.24 when bumping 1.1.1 → 1.1.2).
   local old_esc="${old//./\\.}"
   local new_esc="${new//./\\.}"
+  # All modes are ANCHORED to the line shape of the project's own version slot.
+  # The previous `plain) sed s/OLD/NEW/g` was a full-text regex that corrupted
+  # dependency version strings (e.g. `langchain>=0.4.0` → `langchain>=0.4.1`
+  # when bumping project 0.4.0 → 0.4.1).
   case "$mode" in
-    json)  sed -i "s/\"$old_esc\"/\"$new_esc\"/g" "$f" ;;
-    plain) sed -i "s/$old_esc/$new_esc/g" "$f" ;;
+    json)   # npm: anchor to "version": "X.Y.Z" (key prefix) so dep values like
+            # `"react": "0.4.0"` are not touched.
+            sed -i "s/\"version\": \"$old_esc\"/\"version\": \"$new_esc\"/" "$f" ;;
+    toml)   # TOML PEP 621: ^version = "X.Y.Z"
+            sed -i "s/^version = \"$old_esc\"/version = \"$new_esc\"/" "$f" ;;
+    python) # Python module: ^(__version__) = "X.Y.Z"
+            sed -i "s/^\(__version__\) = \"$old_esc\"/\1 = \"$new_esc\"/" "$f" ;;
+    plain)  # Whole-line X.Y.Z (e.g. backend/VERSION plain-text file)
+            sed -i "s/^$old_esc\$/$new_esc/" "$f" ;;
+    *)      log_error "  $f: unknown mode '$mode' (expected: json|toml|python|plain)"
+            return 1 ;;
   esac
 }
 

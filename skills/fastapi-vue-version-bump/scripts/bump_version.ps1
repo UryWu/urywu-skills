@@ -50,11 +50,11 @@ $Components = @{
     backend   = @{
         Reader = { Select-String -Path "$RootDir\backend\pyproject.toml" -Pattern '^version\s*=\s*"(\d+\.\d+\.\d+)"' }
         Files  = @(
-            @{ Path = "backend\pyproject.toml";             Mode = 'plain' },
+            @{ Path = "backend\pyproject.toml";             Mode = 'toml' },
             @{ Path = "backend\VERSION";                    Mode = 'plain' },
-            @{ Path = "backend\app\main.py";                Mode = 'plain' },
-            @{ Path = "backend\app\schemas\types.py";       Mode = 'plain' },
-            @{ Path = "backend\app\api\endpoints\health.py"; Mode = 'plain' }
+            @{ Path = "backend\app\main.py";                Mode = 'python' },
+            @{ Path = "backend\app\schemas\types.py";       Mode = 'python' },
+            @{ Path = "backend\app\api\endpoints\health.py"; Mode = 'python' }
         )
         Sync   = { Push-Location "$RootDir\backend"; uv lock | Out-Null; Pop-Location }
     }
@@ -120,20 +120,46 @@ function Update-VersionInFile {
         Write-Warn2 "$Path (missing, skipped)"
         return
     }
-    # Literal string substitution (.Replace is literal, not regex — no escaping needed)
-    if ($Mode -eq 'json') {
-        $pattern = "`"$Old`""
-        $replacement = "`"$New`""
-    } else {
-        $pattern = $Old
-        $replacement = $New
+    # Use anchored regex per mode. The previous .Replace() call was unanchored
+    # literal substitution — it would corrupt dependency version strings like
+    # `langchain>=0.4.0` → `langchain>=0.4.1` when bumping project 0.4.0 → 0.4.1.
+    $oldEsc = [regex]::Escape($Old)
+    $newEsc = [regex]::Escape($New)
+    switch ($Mode) {
+        'json' {
+            # npm: anchor to "version": "X.Y.Z" (key prefix) so dep values like
+            # `"react": "0.4.0"` are not touched.
+            $pattern = '"version"\s*:\s*"' + $oldEsc + '"'
+            $replacement = '"version": "' + $New + '"'
+        }
+        'toml' {
+            # TOML PEP 621: ^version = "X.Y.Z"
+            $pattern = '^version\s*=\s*"' + $oldEsc + '"'
+            $replacement = 'version = "' + $New + '"'
+        }
+        'python' {
+            # Python module: ^(__version__) = "X.Y.Z"
+            $pattern = '^(__version__)\s*=\s*"' + $oldEsc + '"'
+            $replacement = '$1 = "' + $New + '"'
+        }
+        'plain' {
+            # Whole-line X.Y.Z (e.g. backend/VERSION plain-text file)
+            $pattern = '^' + $oldEsc + '$'
+            $replacement = $New
+        }
+        default {
+            Write-Err2 "$Path: unknown mode '$Mode' (expected: json|toml|python|plain)"
+            return
+        }
     }
     # Read bytes through .NET so we don't depend on the system default code page.
     # Get-Content in PS 5.x defaults to the OEM/ANSI code page, which mangles
     # UTF-8 multi-byte sequences (e.g. Chinese chars get decoded as mojibake).
     $utf8NoBom = New-Object System.Text.UTF8Encoding($False)
     $content = [System.IO.File]::ReadAllText($Path, $utf8NoBom)
-    $content = $content.Replace($pattern, $replacement)
+    # Use Multiline option so ^ and $ match line boundaries, not string boundaries.
+    # Without this, `^version = ...` would only match at the very start of the file.
+    $content = [regex]::Replace($content, $pattern, $replacement, [System.Text.RegularExpressions.RegexOptions]::Multiline)
     [System.IO.File]::WriteAllText($Path, $content, $utf8NoBom)
     Write-Success "$Path"
 }

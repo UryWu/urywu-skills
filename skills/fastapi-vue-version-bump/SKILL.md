@@ -44,12 +44,37 @@ To add a third component to this 2-comp skill (e.g. a browser extension, a CLI t
 
 To swap toolchains without adding components, edit just `sync_lock_backend` (`uv lock` → e.g. `cargo generate-lockfile`) and `sync_lock_frontend` (`npm install` → e.g. `yarn install --frozen-lockfile`).
 
+### `mode` values for `COMPONENT_FILES` / `Files` entries
+
+Each version-bearing file uses a `mode` so the script knows how to **anchor** the version-string replacement to the project's own slot — never to dependency version strings. The previous plain global regex had a bug where bumping `0.4.0 → 0.4.1` would also rewrite `langchain>=0.4.0` to `langchain>=0.4.1`; the per-mode anchored regexes below prevent that.
+
+| Mode | Anchored regex (what gets replaced) | Use for |
+|---|---|---|
+| `toml` | `^version = "X.Y.Z"` | PEP 621 `pyproject.toml` |
+| `python` | `^(__version__) = "X.Y.Z"` | Python module's `__version__` |
+| `plain` | `^X.Y.Z$` (whole line) | Plain-text `VERSION` file |
+| `json` | `"version": "X.Y.Z"` (key prefix) | npm `package.json` top-level `version` |
+
+Default mappings (already configured):
+
+| File | Mode |
+|---|---|
+| `backend/pyproject.toml` | `toml` |
+| `backend/VERSION` | `plain` |
+| `backend/app/main.py`, `…/types.py`, `…/health.py` | `python` |
+| `frontend/package.json` | `json` |
+
+When adding a new version-bearing file, pick the mode matching its format. If your project uses a non-standard pattern (e.g. `Cargo.toml` `version = "X.Y.Z"`, Go `const Version = "X.Y.Z"`, `setup.py` `version="X.Y.Z"`), you may need a custom mode — fork `patch_file()` / `Update-VersionInFile()` and add a new case.
+
+**Regression test**: `scripts/test-patch-file.sh` (bash) / `.ps1` (PowerShell) — both encode the bug as test cases and assert that dep versions are not corrupted. Run after any `patch_file()` / `Update-VersionInFile()` change.
+
 ## Bundled resources
 
-This skill carries copies of three files for self-containment; **the project canonical copies are the single source of truth** — keep them in sync by running `<project>/scripts/sync_skill_copies.sh` after every edit. (That helper is not bundled; recreate it from the "Adding a new version-bearing file" pattern.)
+This skill carries copies of the bump driver + regression test for self-containment; **the project canonical copies are the single source of truth** — keep them in sync by running `<project>/scripts/sync_skill_copies.sh` after every edit. (That helper is not bundled; recreate it from the "Adding a new version-bearing file" pattern.)
 
 - `scripts/bump_version.sh` — bundled bash bump driver. For execution, use the project copy at `<project>/scripts/bump_version.sh`; this copy is a reference snapshot.
 - `scripts/bump_version.ps1` — bundled PowerShell bump driver. Same pattern, PS-cased param names (`-Backend` not `--backend`).
+- `scripts/test-patch-file.sh` / `.ps1` — regression tests for the version-patch logic (modes `toml`/`python`/`plain`/`json`). Run both before committing changes to `bump_version.*`.
 
 ## When to invoke
 
