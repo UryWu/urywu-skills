@@ -39,20 +39,20 @@ Read the actual `Dockerfile` and `docker-compose.yml`:
 
 ## Workflow
 
-1. Sync code:
+1. Sync code (host-side, bundled `scripts/sync_to_cloud_server_find_tar_provide_data.sh`):
    ```bash
    cd <project-root>
-   bash sync_to_cloud_server_find_tar_provide_data.sh
+   bash scripts/sync_to_cloud_server_find_tar_provide_data.sh
    ```
 2. Identify changed files: `git status` + `git diff --name-only HEAD`
 3. Apply decision matrix above
-4. Run on server (`root@<server-ip>`, project at `/opt/data_sim_card_purchase_provide_data`):
+4. Run on server (`<user>@<server-ip>`, project at `<server-project-dir>`):
    ```bash
    # Rebuild (backend + frontend images)
-   ssh root@<server-ip> "cd /opt/data_sim_card_purchase_provide_data && bash scripts/rebuild-deploy.sh"
+   ssh <user>@<server-ip> "cd <server-project-dir> && bash scripts/rebuild-deploy.sh"
 
    # No rebuild — start existing images
-   ssh root@<server-ip> "cd /opt/data_sim_card_purchase_provide_data && bash start-dev.sh docker"
+   ssh <user>@<server-ip> "cd <server-project-dir> && bash scripts/start-dev.sh docker"
    ```
 5. Verify: `curl http://<server-ip>:8000/api/health` (or `/docs`)
 
@@ -67,9 +67,17 @@ Read the actual `Dockerfile` and `docker-compose.yml`:
 | "scripts/ 也算源码，得 rebuild" | `scripts/sync_local_data.py`, `scripts/periodic_sync.sh` 等 run on host with host's venv + Redis. Never enter container. Sync alone is enough. |
 | "重启容器就 pick up 新代码了" | Container restart doesn't change image layers. Bind-mount source change is already live; image-baked change is not. |
 
+## Bundled Scripts
+
+Three scripts from the source project are bundled for self-containment; **the project canonical copies at `<project>/scripts/` are the single source of truth**. Treat the bundled copies as reference snapshots and keep them in sync via your project's `sync_skill_copies.sh` (not bundled; recreate it from the pattern in `fastapi-vue-version-bump`).
+
+- `scripts/sync_to_cloud_server_find_tar_provide_data.sh` — host-side upload (creates tarball, transfers to server, extracts)
+- `scripts/rebuild-deploy.sh` — server-side: rebuild backend + frontend images then restart
+- `scripts/start-dev.sh` — server-side: just start existing images (assumes already-built)
+
 ## Adapting to Other Projects
 
-Replace script names + server address. The matrix is universal for any project where:
+Replace placeholders (`<user>`, `<server-ip>`, `<server-project-dir>`) and the three script paths. The decision matrix is universal for any project where:
 
 - App source is bind-mounted with hot-reload
 - Dependencies (`uv.lock` / `package-lock.json` / `requirements.txt` / `Pipfile.lock`) are baked into image at build time
