@@ -91,20 +91,37 @@ npx skillslm install UryWu/urywu-skills --skill playwright-cli --agent claude-co
 
 > **注意**：`skillslm install` 在目标已存在时会**覆盖**（源码 `fs.rmSync` 后 `copySkillDirectory`，带 warning 日志"将覆盖"）；`skillslm update` 也覆盖，但 update **不会记录来源**——必须传完整的 GitHub URL。
 
+### 项目级更新
+
 ```bash
 npx skillslm update https://github.com/UryWu/urywu-skills/tree/main/skills/fastapi-vue-version-bump
 npx skillslm update https://github.com/UryWu/urywu-skills/tree/main/skills/playwright-cli
-
-# 全局安装的 skill 更新时要带 --global
-npx skillslm update https://github.com/UryWu/urywu-skills/tree/main/skills/playwright-cli --global
 ```
 
-或者直接重新安装（install 也会覆盖，所以"删+装"和"update"效果相近，但 install 是全量复制）：
+### 全局更新（⚠️ skillslm v2.0.0 有 bug，见下方说明）
+
+```bash
+# ⚠️ 这条命令不会更新 ~/.claude/skills/<agent>/，反而把 skill 写到 cwd 下的 .skills/
+npx skillslm update https://github.com/UryWu/urywu-skills/tree/main/skills/fastapi-vue-version-bump --global
+
+# ✅ 正确做法：直接用 install --global --yes（install 覆盖式，会刷新全局副本）
+npx skillslm install UryWu/urywu-skills --skill fastapi-vue-version-bump --agent claude-code --global --yes
+```
+
+**已知 bug**（`skillslm@2.0.0`）：`update --global` 标志被忽略，目标目录变成 `cwd/.skills/<skill>/` 而不是 `~/.claude/skills/<agent>/<skill>/`。已经实测复现两次（带不带 `--agent claude-code` 都不修），全局副本没被刷新。
+
+**绕路**：用 `install --global --yes` 代替 `update --global`。`install` 的覆盖逻辑（`fs.rmSync` 后 `copySkillDirectory`）是工作的，并且全量复制，比 `update` 的浅层同步更稳——见 [卸载 → 重置后重装](#重置后重装伪更新)。
+
+### "伪更新"（手动重装，更稳）
+
+因为 `skillslm install` 在目标已存在时会**覆盖**（`fs.rmSync` 后再 `copySkillDirectory`），所以可以靠"先删再装"做一次干净重装：
 
 ```bash
 rm -rf .claude/skills/fastapi-vue-version-bump
 npx skillslm install UryWu/urywu-skills --skill fastapi-vue-version-bump --agent claude-code --yes
 ```
+
+> 这比 `skillslm update <full-url>` 更稳：update 走的是浅层文件同步，可能漏掉你新加的 `references/` 或 `scripts/` 子文件；"删+装"是全量复制。
 
 ---
 
@@ -127,17 +144,6 @@ rm -rf .claude/skills/playwright-cli
 ```bash
 rm -rf ~/.claude/skills/fastapi-vue-version-bump
 ```
-
-### 重置后重装（"伪更新"）
-
-因为 `skillslm install` 在目标已存在时会**覆盖**（`fs.rmSync` 后再 `copySkillDirectory`），所以可以靠"先删再装"做一次干净重装：
-
-```bash
-rm -rf .claude/skills/fastapi-vue-version-bump
-npx skillslm install UryWu/urywu-skills --skill fastapi-vue-version-bump --agent claude-code --yes
-```
-
-> 这比 `skillslm update <full-url>` 更稳：update 走的是浅层文件同步，可能漏掉你新加的 `references/` 或 `scripts/` 子文件；"删+装"是全量复制。
 
 ---
 
