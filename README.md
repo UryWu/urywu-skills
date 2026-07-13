@@ -11,7 +11,8 @@ UryWu 个人 Claude Code skill 集中托管点。
 | Skill | 说明 | 适用场景 |
 |---|---|---|
 | [`fastapi-vue-version-bump`](skills/fastapi-vue-version-bump/SKILL.md) | 双组件版本号统一升降（后端 + 前端），自动重生成 lockfile、维护 CHANGELOG | FastAPI+Vue、Python+Node 等双组件项目发版 |
-| [`fastapi-vue-docker-compose-deploy-strategy-simcard`](skills/fastapi-vue-docker-compose-deploy-strategy-simcard/SKILL.md) | 上传代码后决定 `rebuild-deploy.sh` vs `start-dev.sh`（基于 Dockerfile `COPY` + bind-mount 矩阵），避免无谓 5-47 min rebuild | FastAPI+Vue + Docker Compose + bind-mount hot-reload 项目（流量卡分销 simcard 项目特化）|
+| [`fastapi-vue-docker-compose-deploy-strategy`](skills/fastapi-vue-docker-compose-deploy-strategy/SKILL.md) | 通用 Dockerfile COPY + bind-mount 决策矩阵（rebuild vs start），含跨栈适配指引 | 任何 FastAPI+Vue + Docker Compose + bind-mount hot-reload 项目 |
+| [`fastapi-vue-docker-compose-deploy-strategy-simcard`](skills/fastapi-vue-docker-compose-deploy-strategy-simcard/SKILL.md) | 上传代码后决定 `rebuild-deploy.sh` vs `start-dev.sh`，含具体脚本实现 | **流量卡分销 simcard 项目特化备份**（不通用，新项目用通用版） |
 | [`playwright-cli`](skills/playwright-cli/SKILL.md) | 浏览器自动化、网页测试、Playwright 调试 | Web 端到端调试、UI 自动化 |
 
 ---
