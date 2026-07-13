@@ -15,7 +15,7 @@
 
 **当前托管 skill**：
 - `fastapi-vue-version-bump` — 双组件（Python backend + Node frontend）版本号统一升降
-- `fastapi-vue-docker-compose-deploy-strategy` — Dockerfile COPY + bind-mount 决策矩阵（rebuild vs start）
+- `fastapi-vue-docker-compose-deploy-strategy-simcard` — Dockerfile COPY + bind-mount 决策矩阵（rebuild vs start），流量卡分销 simcard 项目特化
 - `playwright-cli` — 浏览器自动化
 
 ---

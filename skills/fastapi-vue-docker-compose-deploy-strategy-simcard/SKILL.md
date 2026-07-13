@@ -1,5 +1,5 @@
 ---
-name: fastapi-vue-docker-compose-deploy-strategy
+name: fastapi-vue-docker-compose-deploy-strategy-simcard
 description: Use when uploading source code to a remote Docker-Compose deploy target and needing to decide between full image rebuild (`rebuild-deploy.sh`) versus just starting existing images (`start-dev.sh`) — applies to FastAPI + Vue projects where source is bind-mounted with hot-reload but Python/Node dependencies are baked into images at build time; a wrong choice wastes 5-47 minutes per deploy or leaves the container running stale `.venv` / `node_modules`.
 ---
 
